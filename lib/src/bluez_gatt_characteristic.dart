@@ -30,7 +30,7 @@ class BlueZGattCharacteristic {
 
   /// @nodoc — internal constructor, not part of public API.
   BlueZGattCharacteristic.internal(this._clientHandle, BlueZGattCharProps props)
-      : _props = props;
+    : _props = props;
 
   /// D-Bus object path of this characteristic.
   String get objectPath => _props.objectPath;
@@ -65,7 +65,10 @@ class BlueZGattCharacteristic {
   Future<List<int>> readValue() async {
     final port = ReceivePort();
     BlueZBindings.charReadValue(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     final msg = await port.first as Uint8List;
     port.close();
     if (msg[0] == 0x20) {
@@ -81,8 +84,13 @@ class BlueZGattCharacteristic {
   Future<void> writeValue(List<int> data, {bool withResponse = true}) async {
     final bytes = Uint8List.fromList(data);
     final port = ReceivePort();
-    BlueZBindings.charWriteValue(_clientHandle, objectPath, bytes, withResponse,
-        port.sendPort.nativePort);
+    BlueZBindings.charWriteValue(
+      _clientHandle,
+      objectPath,
+      bytes,
+      withResponse,
+      port.sendPort.nativePort,
+    );
     final msg = await port.first as Uint8List;
     port.close();
     if (msg[0] == 0x20) {
@@ -95,7 +103,10 @@ class BlueZGattCharacteristic {
   Future<void> startNotify() async {
     final port = ReceivePort();
     BlueZBindings.charStartNotify(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     final msg = await port.first as Uint8List;
     port.close();
     if (msg[0] == 0x20) {
@@ -108,7 +119,10 @@ class BlueZGattCharacteristic {
   Future<void> stopNotify() async {
     final port = ReceivePort();
     BlueZBindings.charStopNotify(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     final msg = await port.first as Uint8List;
     port.close();
     if (msg[0] == 0x20) {

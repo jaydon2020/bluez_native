@@ -216,12 +216,11 @@ class BlueZAgentRequest {
 
   /// Whether this request requires a response via [BlueZClient.agentRespond].
   bool get needsResponse => switch (requestType) {
-        AgentRequestType.requestPinCode ||
-        AgentRequestType.requestPasskey ||
-        AgentRequestType.requestConfirmation ||
-        AgentRequestType.requestAuthorization ||
-        AgentRequestType.authorizeService =>
-          true,
-        _ => false,
-      };
+    AgentRequestType.requestPinCode ||
+    AgentRequestType.requestPasskey ||
+    AgentRequestType.requestConfirmation ||
+    AgentRequestType.requestAuthorization ||
+    AgentRequestType.authorizeService => true,
+    _ => false,
+  };
 }

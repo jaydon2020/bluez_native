@@ -32,7 +32,7 @@ class BlueZDevice {
 
   /// @nodoc — internal constructor, not part of public API.
   BlueZDevice.internal(this._clientHandle, BlueZDeviceProps props)
-      : _props = props;
+    : _props = props;
 
   /// D-Bus object path.
   String get objectPath => _props.objectPath;
@@ -98,7 +98,10 @@ class BlueZDevice {
   Future<void> connect() async {
     final port = ReceivePort();
     BlueZBindings.deviceConnect(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     await _awaitResult(port);
     if (!connected) {
       try {
@@ -116,7 +119,10 @@ class BlueZDevice {
   Future<void> disconnect() async {
     final port = ReceivePort();
     BlueZBindings.deviceDisconnect(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     await _awaitResult(port);
     if (connected) {
       try {
@@ -134,7 +140,10 @@ class BlueZDevice {
   Future<void> pair() async {
     final port = ReceivePort();
     BlueZBindings.devicePair(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     await _awaitResult(port);
   }
 
@@ -175,16 +184,19 @@ class BlueZDevice {
         ? partial.connected
         : _props.connected;
     final rssi = m(BlueZDeviceProps.kRSSIBit) ? partial.rssi : _props.rssi;
-    final paired =
-        m(BlueZDeviceProps.kPairedBit) ? partial.paired : _props.paired;
+    final paired = m(BlueZDeviceProps.kPairedBit)
+        ? partial.paired
+        : _props.paired;
     final servicesResolved = m(BlueZDeviceProps.kServicesResolvedBit)
         ? partial.servicesResolved
         : _props.servicesResolved;
     final name = m(BlueZDeviceProps.kNameBit) ? partial.name : _props.name;
-    final trusted =
-        m(BlueZDeviceProps.kTrustedBit) ? partial.trusted : _props.trusted;
-    final blocked =
-        m(BlueZDeviceProps.kBlockedBit) ? partial.blocked : _props.blocked;
+    final trusted = m(BlueZDeviceProps.kTrustedBit)
+        ? partial.trusted
+        : _props.trusted;
+    final blocked = m(BlueZDeviceProps.kBlockedBit)
+        ? partial.blocked
+        : _props.blocked;
     final alias = m(BlueZDeviceProps.kAliasBit) ? partial.alias : _props.alias;
 
     // Detect actual changes for notification.

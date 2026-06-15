@@ -8,9 +8,11 @@ import 'example_utils.dart';
 
 Future<void> main(List<String> args) async {
   if (args.length < 3) {
-    print('Usage: dart run example/write_characteristic.dart '
-        '<device_address> <characteristic_uuid> <hex_bytes> '
-        '[--no-response] [--timeout <seconds>]');
+    print(
+      'Usage: dart run example/write_characteristic.dart '
+      '<device_address> <characteristic_uuid> <hex_bytes> '
+      '[--no-response] [--timeout <seconds>]',
+    );
     print('');
     print('  hex_bytes: space-separated hex values, e.g. "01 ff 00"');
     return;
@@ -27,8 +29,9 @@ Future<void> main(List<String> args) async {
     final idx = args.indexOf('--timeout');
     return idx == -1 || args.indexOf(a) != idx + 1;
   });
-  final data =
-      Uint8List.fromList(hexArgs.map((h) => int.parse(h, radix: 16)).toList());
+  final data = Uint8List.fromList(
+    hexArgs.map((h) => int.parse(h, radix: 16)).toList(),
+  );
 
   final client = BlueZClient();
   await client.connect();
@@ -41,8 +44,12 @@ Future<void> main(List<String> args) async {
     await Future<void>.delayed(const Duration(milliseconds: 500));
   }
 
-  final target =
-      await findDevice(client, adapter, deviceAddr, timeout: timeout);
+  final target = await findDevice(
+    client,
+    adapter,
+    deviceAddr,
+    timeout: timeout,
+  );
   if (target == null) {
     await client.close();
     return;
@@ -68,8 +75,9 @@ Future<void> main(List<String> args) async {
 
   await target.waitForServicesResolved();
 
-  final char =
-      target.gattCharacteristics.where((c) => c.uuid == charUuid).firstOrNull;
+  final char = target.gattCharacteristics
+      .where((c) => c.uuid == charUuid)
+      .firstOrNull;
 
   if (char == null) {
     print('Characteristic $charUuid not found.');
@@ -92,8 +100,9 @@ Future<void> main(List<String> args) async {
   // Read back to verify if the characteristic supports read.
   if (char.flags.contains(BlueZGattCharacteristicFlag.read)) {
     final readBack = await char.readValue();
-    final readHex =
-        readBack.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+    final readHex = readBack
+        .map((b) => b.toRadixString(16).padLeft(2, '0'))
+        .join(' ');
     print('Read back: [$readHex]');
   }
 

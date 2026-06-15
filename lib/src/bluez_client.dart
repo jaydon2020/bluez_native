@@ -160,8 +160,10 @@ class BlueZClient {
     } on Exception catch (e) {
       // Log and continue — a malformed event must not kill the event loop.
       // ignore: avoid_print
-      print('[bluez] error processing event 0x'
-          '${msg[0].toRadixString(16).padLeft(2, '0')}: $e');
+      print(
+        '[bluez] error processing event 0x'
+        '${msg[0].toRadixString(16).padLeft(2, '0')}: $e',
+      );
     }
   }
 
@@ -174,7 +176,9 @@ class BlueZClient {
       case 0x01: // BlueZAdapterProps
         final props = GlazeCodec.decode<BlueZAdapterProps>(msg, 1);
         final adapter = _adapters.putIfAbsent(
-            props.objectPath, () => BlueZAdapter.internal(_handle!, props));
+          props.objectPath,
+          () => BlueZAdapter.internal(_handle!, props),
+        );
         adapter.updateProps(props);
         _adapterChangedCtrl.add(adapter);
 

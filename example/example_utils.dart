@@ -29,8 +29,9 @@ Future<BlueZDevice?> findDevice(
   addr = addr.toUpperCase();
 
   // Check already-known devices.
-  final existing =
-      client.devices.where((d) => d.address.toUpperCase() == addr).firstOrNull;
+  final existing = client.devices
+      .where((d) => d.address.toUpperCase() == addr)
+      .firstOrNull;
   if (existing != null) {
     print('Device $addr already known to BlueZ.');
     return existing;
