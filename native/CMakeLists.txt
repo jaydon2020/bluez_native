@@ -55,6 +55,17 @@ set_target_properties(bluez_nc PROPERTIES
     OUTPUT_NAME "bluez_nc"
 )
 
+# When building in-tree (not via the Dart native asset hook), stage the
+# shared library into lib/ so the legacy DynamicLibrary.open() loader and
+# in-tree tooling can locate it. The hook build sets BLUEZ_HOOK_BUILD=ON
+# and consumes the artifact directly from the CMake build directory.
+option(BLUEZ_HOOK_BUILD "Build is driven by the Dart package:hooks build hook" OFF)
+if(NOT BLUEZ_HOOK_BUILD)
+    set_target_properties(bluez_nc PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/../lib"
+    )
+endif()
+
 if(BUILD_TESTING)
     enable_testing()
     add_subdirectory(test)

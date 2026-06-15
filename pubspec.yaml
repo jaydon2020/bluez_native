@@ -11,14 +11,16 @@ issue_tracker:  https://github.com/jwinarske/bluez_native/issues
 documentation:  https://pub.dev/documentation/bluez_native/latest/
 
 environment:
-  sdk: ">=3.4.0 <4.0.0"
+  sdk: ^3.10.0
 
 platforms:
   linux:
 
 dependencies:
-  ffi:  ^2.1.0
-  path: ^1.9.0
+  code_assets: ^1.0.0
+  ffi:         ^2.1.0
+  hooks:       ^1.0.2
+  path:        ^1.9.0
 
 dev_dependencies:
   build_runner: ^2.4.0
