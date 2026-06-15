@@ -2,7 +2,7 @@
 
 import 'dart:async';
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 /// Default scan timeout in seconds.
 const int kDefaultTimeoutSeconds = 15;

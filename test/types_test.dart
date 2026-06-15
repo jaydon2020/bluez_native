@@ -1,6 +1,6 @@
-import 'package:bluez_native_comms/src/bluez_uuid.dart';
-import 'package:bluez_native_comms/src/enums.dart';
-import 'package:bluez_native_comms/src/exceptions.dart';
+import 'package:bluez_native/src/bluez_uuid.dart';
+import 'package:bluez_native/src/enums.dart';
+import 'package:bluez_native/src/exceptions.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:bluez_native_comms/src/ffi/codec.dart';
-import 'package:bluez_native_comms/src/ffi/types.dart';
+import 'package:bluez_native/src/ffi/codec.dart';
+import 'package:bluez_native/src/ffi/types.dart';
 import 'package:test/test.dart';
 
 /// Helper: encode a string as length-prefixed UTF-8 (matches glaze_meta.h).

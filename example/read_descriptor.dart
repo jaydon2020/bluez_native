@@ -1,6 +1,6 @@
 // example/read_descriptor.dart — read GATT descriptors for a characteristic.
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 import 'example_utils.dart';
 
