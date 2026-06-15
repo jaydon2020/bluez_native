@@ -27,6 +27,8 @@ class GlazeCodec {
       return _decodeValueResult(r) as T;
     } else if (T == BlueZError) {
       return _decodeError(r) as T;
+    } else if (T == BlueZAgentRequest) {
+      return _decodeAgentRequest(r) as T;
     }
     throw ArgumentError('Unknown type: $T');
   }
@@ -121,6 +123,23 @@ class GlazeCodec {
       message: r.readString(),
     );
   }
+
+  static BlueZAgentRequest _decodeAgentRequest(_Reader r) {
+    final requestId = r.readUint64();
+    final requestType = r.readUint8();
+    if (requestType >= AgentRequestType.values.length) {
+      throw RangeError('Unknown AgentRequestType: $requestType');
+    }
+    return BlueZAgentRequest(
+      requestId: requestId,
+      requestType: AgentRequestType.values[requestType],
+      devicePath: r.readString(),
+      passkey: r.readUint32(),
+      entered: r.readUint16(),
+      pinCode: r.readString(),
+      uuid: r.readString(),
+    );
+  }
 }
 
 class _Reader {
@@ -140,10 +159,24 @@ class _Reader {
     }
   }
 
+  int readUint8() {
+    _checkBounds(1);
+    final v = _data.getUint8(_offset);
+    _offset += 1;
+    return v;
+  }
+
   bool readBool() {
     _checkBounds(1);
     final v = _data.getUint8(_offset) != 0;
     _offset += 1;
+    return v;
+  }
+
+  int readUint64() {
+    _checkBounds(8);
+    final v = _data.getUint64(_offset, Endian.little);
+    _offset += 8;
     return v;
   }
 

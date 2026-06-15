@@ -101,7 +101,14 @@ class BlueZDevice {
         _clientHandle, objectPath, port.sendPort.nativePort);
     await _awaitResult(port);
     if (!connected) {
-      await propertiesChanged.where((_) => connected).first;
+      try {
+        await propertiesChanged
+            .where((_) => connected)
+            .first
+            .timeout(const Duration(seconds: 10));
+      } on TimeoutException {
+        // Connection property change didn't arrive in time.
+      }
     }
   }
 
@@ -112,7 +119,14 @@ class BlueZDevice {
         _clientHandle, objectPath, port.sendPort.nativePort);
     await _awaitResult(port);
     if (connected) {
-      await propertiesChanged.where((_) => !connected).first;
+      try {
+        await propertiesChanged
+            .where((_) => !connected)
+            .first
+            .timeout(const Duration(seconds: 5));
+      } on TimeoutException {
+        // Disconnect property change didn't arrive in time.
+      }
     }
   }
 
@@ -130,9 +144,21 @@ class BlueZDevice {
   }
 
   /// Wait for ServicesResolved = true after connect().
-  Future<void> waitForServicesResolved() async {
+  ///
+  /// Times out after [timeout] (default 10 seconds) to avoid hanging
+  /// indefinitely if GATT discovery fails. Returns silently on timeout.
+  Future<void> waitForServicesResolved({
+    Duration timeout = const Duration(seconds: 10),
+  }) async {
     if (servicesResolved) return;
-    await propertiesChanged.where((_) => servicesResolved).first;
+    try {
+      await propertiesChanged
+          .where((_) => servicesResolved)
+          .first
+          .timeout(timeout);
+    } on TimeoutException {
+      // GATT discovery didn't complete in time — return rather than hang.
+    }
   }
 
   // ── Internal ──────────────────────────────────────────────────────────────
@@ -197,6 +223,30 @@ class BlueZDevice {
     );
 
     if (changed.isNotEmpty) _propertiesChangedCtrl.add(changed);
+  }
+
+  /// Close all stream controllers. Called when the device is removed.
+  void dispose() {
+    _propertiesChangedCtrl.close();
+    for (final c in _characteristics.values) {
+      c.dispose();
+    }
+  }
+
+  void clearGatt() {
+    for (final c in _characteristics.values) {
+      c.dispose();
+    }
+    _services.clear();
+    _characteristics.clear();
+    _descriptors.clear();
+  }
+
+  void removeGattObject(String objectPath) {
+    _characteristics[objectPath]?.dispose();
+    _services.remove(objectPath);
+    _characteristics.remove(objectPath);
+    _descriptors.remove(objectPath);
   }
 
   void addService(BlueZGattServiceProps props) =>

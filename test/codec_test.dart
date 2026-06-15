@@ -48,6 +48,7 @@ void main() {
     test('decodes BlueZAdapterProps', () {
       final b = BytesBuilder();
       _writeString(b, '/org/bluez/hci0');
+      _writeUint32(b, 0xFFFFFFFF); // changedMask (full snapshot)
       _writeString(b, '00:11:22:33:44:55');
       _writeString(b, 'hci0');
       _writeString(b, 'My Adapter');
@@ -62,6 +63,7 @@ void main() {
       final props = GlazeCodec.decode<BlueZAdapterProps>(data, 0);
 
       expect(props.objectPath, '/org/bluez/hci0');
+      expect(props.changedMask, 0xFFFFFFFF);
       expect(props.address, '00:11:22:33:44:55');
       expect(props.name, 'hci0');
       expect(props.alias, 'My Adapter');
@@ -75,6 +77,7 @@ void main() {
     test('decodes BlueZDeviceProps', () {
       final b = BytesBuilder();
       _writeString(b, '/dev/path');
+      _writeUint32(b, 0xFFFFFFFF); // changedMask (full snapshot)
       _writeString(b, '/org/bluez/hci0');
       _writeString(b, 'AA:BB:CC:DD:EE:FF');
       _writeString(b, 'public');

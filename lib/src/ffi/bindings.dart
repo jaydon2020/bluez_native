@@ -198,6 +198,34 @@ class BlueZBindings {
     calloc.free(p);
   }
 
+  // ── Pairing agent ─────────────────────────────────────────────────────────
+
+  static final _agentRegister = _lib.lookupFunction<
+      Void Function(Pointer<Void>),
+      void Function(Pointer<Void>)>('bluez_agent_register');
+
+  static final _agentUnregister = _lib.lookupFunction<
+      Void Function(Pointer<Void>),
+      void Function(Pointer<Void>)>('bluez_agent_unregister');
+
+  static final _agentRespond = _lib.lookupFunction<
+      Void Function(Pointer<Void>, Uint64, Bool, Pointer<Utf8>),
+      void Function(
+          Pointer<Void>, int, bool, Pointer<Utf8>)>('bluez_agent_respond');
+
+  static void agentRegister(Object handle) =>
+      _agentRegister(handle as Pointer<Void>);
+
+  static void agentUnregister(Object handle) =>
+      _agentUnregister(handle as Pointer<Void>);
+
+  static void agentRespond(
+      Object handle, int requestId, bool accepted, String? response) {
+    final r = response?.toNativeUtf8() ?? nullptr;
+    _agentRespond(handle as Pointer<Void>, requestId, accepted, r);
+    if (r != nullptr) calloc.free(r);
+  }
+
   // ── GATT descriptor operations ────────────────────────────────────────────
 
   static final _descReadValue = _lib.lookupFunction<

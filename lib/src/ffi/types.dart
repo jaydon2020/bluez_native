@@ -180,3 +180,48 @@ class BlueZError {
     required this.message,
   });
 }
+
+/// Agent request types matching C++ AgentRequestType enum.
+enum AgentRequestType {
+  requestPinCode, // 0
+  displayPinCode, // 1
+  requestPasskey, // 2
+  displayPasskey, // 3
+  requestConfirmation, // 4
+  requestAuthorization, // 5
+  authorizeService, // 6
+  cancel, // 7
+  release, // 8
+}
+
+/// Agent request event from the native bridge (discriminator 0x30).
+class BlueZAgentRequest {
+  final int requestId;
+  final AgentRequestType requestType;
+  final String devicePath;
+  final int passkey;
+  final int entered;
+  final String pinCode;
+  final String uuid;
+
+  const BlueZAgentRequest({
+    required this.requestId,
+    required this.requestType,
+    this.devicePath = '',
+    this.passkey = 0,
+    this.entered = 0,
+    this.pinCode = '',
+    this.uuid = '',
+  });
+
+  /// Whether this request requires a response via [BlueZClient.agentRespond].
+  bool get needsResponse => switch (requestType) {
+        AgentRequestType.requestPinCode ||
+        AgentRequestType.requestPasskey ||
+        AgentRequestType.requestConfirmation ||
+        AgentRequestType.requestAuthorization ||
+        AgentRequestType.authorizeService =>
+          true,
+        _ => false,
+      };
+}

@@ -25,6 +25,9 @@ class BlueZGattCharacteristic {
   /// via StartNotify / PropertiesChanged. Zero allocation per notification.
   Stream<List<int>> get value => _valueCtrl.stream;
 
+  /// Close the value stream. Called when the characteristic is removed.
+  void dispose() => _valueCtrl.close();
+
   /// @nodoc — internal constructor, not part of public API.
   BlueZGattCharacteristic.internal(this._clientHandle, BlueZGattCharProps props)
       : _props = props;

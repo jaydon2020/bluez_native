@@ -14,10 +14,12 @@
 #include "device_bridge.h"
 #include "gatt_bridge.h"
 #include "object_manager.h"
+#include "pairing_agent.h"
 
 struct BridgeContext {
   std::unique_ptr<sdbus::IConnection> conn;
   std::unique_ptr<ObjectManager> obj_mgr;
+  std::unique_ptr<PairingAgent> agent;
   Dart_Port_DL events_port{};
   std::thread event_loop;
 };
@@ -65,6 +67,8 @@ void* bluez_client_create(int64_t events_port) {
 }
 
 void bluez_client_destroy(void* handle) {
+  if (handle == nullptr)
+    return;
   auto* ctx = static_cast<BridgeContext*>(handle);
   ctx->conn->leaveEventLoop();
   if (ctx->event_loop.joinable()) {
@@ -145,6 +149,47 @@ void bluez_adapter_set_property(void* handle,
     }
   } catch (const sdbus::Error& e) {
     fprintf(stderr, "bluez_adapter_set_property: %s\n", e.what());
+  }
+}
+
+// ── Pairing agent ──────────────────────────────────────────────────────────
+
+void bluez_agent_register(void* handle) {
+  if (handle == nullptr)
+    return;
+  try {
+    auto* ctx = static_cast<BridgeContext*>(handle);
+    if (!ctx->agent) {
+      ctx->agent = std::make_unique<PairingAgent>(*ctx->conn, ctx->events_port);
+    }
+    ctx->agent->register_agent();
+  } catch (const sdbus::Error& e) {
+    fprintf(stderr, "bluez_agent_register: %s\n", e.what());
+  }
+}
+
+void bluez_agent_unregister(void* handle) {
+  if (handle == nullptr)
+    return;
+  try {
+    auto* ctx = static_cast<BridgeContext*>(handle);
+    if (ctx->agent) {
+      ctx->agent->unregister_agent();
+      ctx->agent.reset();
+    }
+  } catch (const sdbus::Error& e) {
+    fprintf(stderr, "bluez_agent_unregister: %s\n", e.what());
+  }
+}
+
+void bluez_agent_respond(void* handle,
+                         uint64_t request_id,
+                         bool accepted,
+                         const char* response) {
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  if (ctx->agent) {
+    ctx->agent->respond(request_id, accepted,
+                        response != nullptr ? response : "");
   }
 }
 

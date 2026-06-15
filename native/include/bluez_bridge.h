@@ -74,6 +74,14 @@ BLUEZ_EXPORT void bluez_char_stop_notify(void* handle,
                                          const char* char_path,
                                          int64_t result_port);
 
+// ── Pairing agent ──────────────────────────────────────────────────────────
+BLUEZ_EXPORT void bluez_agent_register(void* handle);
+BLUEZ_EXPORT void bluez_agent_unregister(void* handle);
+BLUEZ_EXPORT void bluez_agent_respond(void* handle,
+                                      uint64_t request_id,
+                                      bool accepted,
+                                      const char* response);
+
 // ── GATT descriptor operations ──────────────────────────────────────────────
 BLUEZ_EXPORT void bluez_desc_read_value(void* handle,
                                         const char* desc_path,

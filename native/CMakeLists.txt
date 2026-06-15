@@ -22,6 +22,7 @@ add_library(bluez_native STATIC
     src/adapter_bridge.cpp
     src/device_bridge.cpp
     src/gatt_bridge.cpp
+    src/pairing_agent.cpp
     $<TARGET_OBJECTS:dart_api_dl>
 )
 
@@ -38,6 +39,7 @@ add_library(bluez_nc SHARED
     src/adapter_bridge.cpp
     src/device_bridge.cpp
     src/gatt_bridge.cpp
+    src/pairing_agent.cpp
     $<TARGET_OBJECTS:dart_api_dl>
 )
 
