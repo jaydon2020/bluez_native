@@ -1,76 +1,118 @@
-// gatt_bridge.cpp — GATT Characteristic1 and Descriptor1 implementations.
+// gatt_bridge.cpp — GATT Characteristic1 and Descriptor1 async operations.
 
 #include "gatt_bridge.h"
 
+#include <memory>
+#include <optional>
 #include <utility>
+
+// Helper: create a shared proxy that stays alive through async callbacks.
+static std::shared_ptr<sdbus::IProxy> make_proxy(sdbus::IConnection& conn,
+                                                 const std::string& path) {
+  return std::shared_ptr<sdbus::IProxy>(
+      sdbus::createProxy(conn, sdbus::ServiceName{"org.bluez"},
+                         sdbus::ObjectPath{path})
+          .release());
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GattCharBridge
 // ═══════════════════════════════════════════════════════════════════════════
 
-GattCharBridge::GattCharBridge(sdbus::IConnection& conn,
-                               std::string char_path,
-                               ObjectManager& obj_mgr)
-    : conn_(conn),
-      char_path_(std::move(char_path)),
-      obj_mgr_(obj_mgr),
-      proxy_(sdbus::createProxy(conn_,
-                                sdbus::ServiceName{kBluezService},
-                                sdbus::ObjectPath{char_path_})) {}
+void GattCharBridge::read_value_async(sdbus::IConnection& conn,
+                                      const std::string& char_path,
+                                      Dart_Port_DL result_port) {
+  auto proxy = make_proxy(conn, char_path);
+  std::map<std::string, sdbus::Variant> options;
 
-void GattCharBridge::read_value(Dart_Port_DL result_port) {
-  try {
-    std::map<std::string, sdbus::Variant> options;
-    std::vector<uint8_t> value;
-    proxy_->callMethod("ReadValue")
-        .onInterface(kGattCharIface)
-        .withArguments(options)
-        .storeResultsTo(value);
-    post_value_result(result_port, char_path_, value);
-  } catch (const sdbus::Error& e) {
-    post_error(result_port, char_path_, e.getName(), e.getMessage());
-  }
+  proxy->callMethodAsync("ReadValue")
+      .onInterface(kGattCharIface)
+      .withArguments(options)
+      .uponReplyInvoke(
+          [proxy, char_path, result_port](std::optional<sdbus::Error> error,
+                                          const std::vector<uint8_t>& value) {
+            if (error) {
+              post_error(result_port, char_path, error->getName(),
+                         error->getMessage());
+            } else {
+              post_value_result(result_port, char_path, value);
+            }
+          });
 }
 
-void GattCharBridge::write_value(const uint8_t* data,
-                                 int32_t len,
-                                 bool with_response,
-                                 Dart_Port_DL result_port) {
-  try {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    std::vector<uint8_t> value(data, data + static_cast<size_t>(len));
-    std::map<std::string, sdbus::Variant> options;
-    if (!with_response) {
-      options["type"] = sdbus::Variant{std::string{"command"}};
-    }
-    proxy_->callMethod("WriteValue")
-        .onInterface(kGattCharIface)
-        .withArguments(value, options);
-    post_success(result_port);
-  } catch (const sdbus::Error& e) {
-    post_error(result_port, char_path_, e.getName(), e.getMessage());
+void GattCharBridge::write_value_async(sdbus::IConnection& conn,
+                                       const std::string& char_path,
+                                       const uint8_t* data,
+                                       int32_t len,
+                                       bool with_response,
+                                       Dart_Port_DL result_port) {
+  if (len < 0 || data == nullptr) {
+    post_error(result_port, char_path, "org.bluez.Error.InvalidArguments",
+               "Invalid write data");
+    return;
   }
+  auto proxy = make_proxy(conn, char_path);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  std::vector<uint8_t> value(data, data + static_cast<size_t>(len));
+  std::map<std::string, sdbus::Variant> options;
+  if (!with_response) {
+    options["type"] = sdbus::Variant{std::string{"command"}};
+  }
+
+  proxy->callMethodAsync("WriteValue")
+      .onInterface(kGattCharIface)
+      .withArguments(value, options)
+      .uponReplyInvoke(
+          [proxy, char_path, result_port](std::optional<sdbus::Error> error) {
+            if (error) {
+              post_error(result_port, char_path, error->getName(),
+                         error->getMessage());
+            } else {
+              post_success(result_port);
+            }
+          });
 }
 
-void GattCharBridge::start_notify(Dart_Port_DL result_port) {
-  try {
-    proxy_->callMethod("StartNotify").onInterface(kGattCharIface);
-    // Wire up PropertiesChanged → events_port for Value changes.
-    obj_mgr_.subscribe_char_notify(char_path_);
-    post_success(result_port);
-  } catch (const sdbus::Error& e) {
-    post_error(result_port, char_path_, e.getName(), e.getMessage());
-  }
+void GattCharBridge::start_notify_async(sdbus::IConnection& conn,
+                                        const std::string& char_path,
+                                        ObjectManager& obj_mgr,
+                                        Dart_Port_DL result_port) {
+  auto proxy = make_proxy(conn, char_path);
+
+  proxy->callMethodAsync("StartNotify")
+      .onInterface(kGattCharIface)
+      .uponReplyInvoke([proxy, char_path, &obj_mgr,
+                        result_port](std::optional<sdbus::Error> error) {
+        if (error) {
+          post_error(result_port, char_path, error->getName(),
+                     error->getMessage());
+        } else {
+          // Wire up PropertiesChanged for Value notifications.
+          obj_mgr.subscribe_char_notify(char_path);
+          post_success(result_port);
+        }
+      });
 }
 
-void GattCharBridge::stop_notify(Dart_Port_DL result_port) {
-  try {
-    proxy_->callMethod("StopNotify").onInterface(kGattCharIface);
-    obj_mgr_.unsubscribe_char_notify(char_path_);
-    post_success(result_port);
-  } catch (const sdbus::Error& e) {
-    post_error(result_port, char_path_, e.getName(), e.getMessage());
-  }
+void GattCharBridge::stop_notify_async(sdbus::IConnection& conn,
+                                       const std::string& char_path,
+                                       ObjectManager& obj_mgr,
+                                       Dart_Port_DL result_port) {
+  auto proxy = make_proxy(conn, char_path);
+
+  proxy->callMethodAsync("StopNotify")
+      .onInterface(kGattCharIface)
+      .uponReplyInvoke([proxy, char_path, &obj_mgr,
+                        result_port](std::optional<sdbus::Error> error) {
+        if (error) {
+          post_error(result_port, char_path, error->getName(),
+                     error->getMessage());
+        } else {
+          obj_mgr.unsubscribe_char_notify(char_path);
+          post_success(result_port);
+        }
+      });
 }
 
 // ── Dart posting helpers ────────────────────────────────────────────────────
@@ -96,7 +138,7 @@ void GattCharBridge::post_value_result(Dart_Port_DL result_port,
 
   std::vector<uint8_t> buf;
   buf.reserve(1 + payload.size());
-  buf.push_back(0x10);  // Characteristic value result.
+  buf.push_back(0x10);
   buf.insert(buf.end(), payload.begin(), payload.end());
 
   Dart_CObject obj;
@@ -135,41 +177,55 @@ void GattCharBridge::post_error(Dart_Port_DL result_port,
 // GattDescBridge
 // ═══════════════════════════════════════════════════════════════════════════
 
-GattDescBridge::GattDescBridge(sdbus::IConnection& conn, std::string desc_path)
-    : conn_(conn),
-      desc_path_(std::move(desc_path)),
-      proxy_(sdbus::createProxy(conn_,
-                                sdbus::ServiceName{kBluezService},
-                                sdbus::ObjectPath{desc_path_})) {}
+void GattDescBridge::read_value_async(sdbus::IConnection& conn,
+                                      const std::string& desc_path,
+                                      Dart_Port_DL result_port) {
+  auto proxy = make_proxy(conn, desc_path);
+  std::map<std::string, sdbus::Variant> options;
 
-void GattDescBridge::read_value(Dart_Port_DL result_port) {
-  try {
-    std::map<std::string, sdbus::Variant> options;
-    std::vector<uint8_t> value;
-    proxy_->callMethod("ReadValue")
-        .onInterface(kGattDescIface)
-        .withArguments(options)
-        .storeResultsTo(value);
-    post_value_result(result_port, desc_path_, value);
-  } catch (const sdbus::Error& e) {
-    post_error(result_port, desc_path_, e.getName(), e.getMessage());
-  }
+  proxy->callMethodAsync("ReadValue")
+      .onInterface(kGattDescIface)
+      .withArguments(options)
+      .uponReplyInvoke(
+          [proxy, desc_path, result_port](std::optional<sdbus::Error> error,
+                                          const std::vector<uint8_t>& value) {
+            if (error) {
+              post_error(result_port, desc_path, error->getName(),
+                         error->getMessage());
+            } else {
+              post_value_result(result_port, desc_path, value);
+            }
+          });
 }
 
-void GattDescBridge::write_value(const uint8_t* data,
-                                 int32_t len,
-                                 Dart_Port_DL result_port) {
-  try {
-    // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-    std::vector<uint8_t> value(data, data + static_cast<size_t>(len));
-    std::map<std::string, sdbus::Variant> options;
-    proxy_->callMethod("WriteValue")
-        .onInterface(kGattDescIface)
-        .withArguments(value, options);
-    post_success(result_port);
-  } catch (const sdbus::Error& e) {
-    post_error(result_port, desc_path_, e.getName(), e.getMessage());
+void GattDescBridge::write_value_async(sdbus::IConnection& conn,
+                                       const std::string& desc_path,
+                                       const uint8_t* data,
+                                       int32_t len,
+                                       Dart_Port_DL result_port) {
+  if (len < 0 || data == nullptr) {
+    post_error(result_port, desc_path, "org.bluez.Error.InvalidArguments",
+               "Invalid write data");
+    return;
   }
+  auto proxy = make_proxy(conn, desc_path);
+
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+  std::vector<uint8_t> value(data, data + static_cast<size_t>(len));
+  std::map<std::string, sdbus::Variant> options;
+
+  proxy->callMethodAsync("WriteValue")
+      .onInterface(kGattDescIface)
+      .withArguments(value, options)
+      .uponReplyInvoke(
+          [proxy, desc_path, result_port](std::optional<sdbus::Error> error) {
+            if (error) {
+              post_error(result_port, desc_path, error->getName(),
+                         error->getMessage());
+            } else {
+              post_success(result_port);
+            }
+          });
 }
 
 // ── Dart posting helpers ────────────────────────────────────────────────────
@@ -195,7 +251,7 @@ void GattDescBridge::post_value_result(Dart_Port_DL result_port,
 
   std::vector<uint8_t> buf;
   buf.reserve(1 + payload.size());
-  buf.push_back(0x11);  // Descriptor value result.
+  buf.push_back(0x11);
   buf.insert(buf.end(), payload.begin(), payload.end());
 
   Dart_CObject obj;
