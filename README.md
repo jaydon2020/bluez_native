@@ -60,7 +60,7 @@ cmake --build build --parallel
 Set `BLUEZ_NC_LIB` to the built shared library, then run:
 
 ```bash
-export BLUEZ_NC_LIB=$PWD/build/libbluez_nc.so
+export BLUEZ_NC_LIB=$PWD/lib/libbluez_nc.so
 dart run example/scan_devices.dart
 ```
 
@@ -69,7 +69,7 @@ dart run example/scan_devices.dart
 ```bash
 cd example/flutter_ble_scanner
 flutter pub get
-BLUEZ_NC_LIB=$PWD/../../build/libbluez_nc.so flutter run
+BLUEZ_NC_LIB=$PWD/../../lib/libbluez_nc.so flutter run
 ```
 
 ## Quick Start
@@ -246,7 +246,7 @@ If rfkill is not the issue, the process may lack permission to change adapter
 properties. Run with elevated privileges:
 
 ```bash
-sudo BLUEZ_NC_LIB=$PWD/build/libbluez_nc.so dart run example/scan_devices.dart
+sudo BLUEZ_NC_LIB=$PWD/lib/libbluez_nc.so dart run example/scan_devices.dart
 ```
 
 ### `BlueZServiceUnavailableException` — BlueZ service is not available

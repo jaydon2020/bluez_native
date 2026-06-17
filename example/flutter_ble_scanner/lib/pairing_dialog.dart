@@ -19,10 +19,17 @@ void showPairingDialog(
     case AgentRequestType.authorizeService:
       _showServiceAuthDialog(context, client, req);
     case AgentRequestType.displayPinCode:
-      _showDisplayDialog(context, 'PIN Code', req.pinCode, req.devicePath);
+      _showDisplayDialog(
+        context,
+        client,
+        'PIN Code',
+        req.pinCode,
+        req.devicePath,
+      );
     case AgentRequestType.displayPasskey:
       _showDisplayDialog(
         context,
+        client,
         'Passkey',
         req.passkey.toString().padLeft(6, '0'),
         req.devicePath,
@@ -37,11 +44,19 @@ void showPairingDialog(
   }
 }
 
-String _deviceName(String devicePath) {
+String _deviceAddress(String devicePath) {
   // Extract address from path: /org/bluez/hci0/dev_AA_BB_CC_DD_EE_FF
   final parts = devicePath.split('/');
   if (parts.isEmpty) return devicePath;
   return parts.last.replaceAll('dev_', '').replaceAll('_', ':');
+}
+
+String _deviceName(BlueZClient client, String devicePath) {
+  final address = _deviceAddress(devicePath);
+  final device =
+      client.devices.where((d) => d.objectPath == devicePath).firstOrNull;
+  if (device == null || device.name.isEmpty) return address;
+  return '${device.name} ($address)';
 }
 
 // ── Confirm passkey ─────────────────────────────────────────────────────────
@@ -52,7 +67,7 @@ void _showConfirmDialog(
   BlueZAgentRequest req,
 ) {
   final passkey = req.passkey.toString().padLeft(6, '0');
-  final device = _deviceName(req.devicePath);
+  final device = _deviceName(client, req.devicePath);
 
   showDialog<void>(
     context: context,
@@ -103,7 +118,7 @@ void _showPinCodeDialog(
   BlueZAgentRequest req,
 ) {
   final controller = TextEditingController();
-  final device = _deviceName(req.devicePath);
+  final device = _deviceName(client, req.devicePath);
 
   showDialog<void>(
     context: context,
@@ -153,7 +168,7 @@ void _showPasskeyDialog(
   BlueZAgentRequest req,
 ) {
   final controller = TextEditingController();
-  final device = _deviceName(req.devicePath);
+  final device = _deviceName(client, req.devicePath);
 
   showDialog<void>(
     context: context,
@@ -204,7 +219,7 @@ void _showAuthorizationDialog(
   BlueZClient client,
   BlueZAgentRequest req,
 ) {
-  final device = _deviceName(req.devicePath);
+  final device = _deviceName(client, req.devicePath);
 
   showDialog<void>(
     context: context,
@@ -239,7 +254,7 @@ void _showServiceAuthDialog(
   BlueZClient client,
   BlueZAgentRequest req,
 ) {
-  final device = _deviceName(req.devicePath);
+  final device = _deviceName(client, req.devicePath);
 
   showDialog<void>(
     context: context,
@@ -280,11 +295,12 @@ void _showServiceAuthDialog(
 
 void _showDisplayDialog(
   BuildContext context,
+  BlueZClient client,
   String label,
   String value,
   String devicePath,
 ) {
-  final device = _deviceName(devicePath);
+  final device = _deviceName(client, devicePath);
 
   showDialog<void>(
     context: context,
