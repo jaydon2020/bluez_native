@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 
 /// Show the appropriate pairing dialog for an agent request.
 void showPairingDialog(
-    BuildContext context, BlueZClient client, BlueZAgentRequest req) {
+  BuildContext context,
+  BlueZClient client,
+  BlueZAgentRequest req,
+) {
   switch (req.requestType) {
     case AgentRequestType.requestConfirmation:
       _showConfirmDialog(context, client, req);
@@ -18,8 +21,12 @@ void showPairingDialog(
     case AgentRequestType.displayPinCode:
       _showDisplayDialog(context, 'PIN Code', req.pinCode, req.devicePath);
     case AgentRequestType.displayPasskey:
-      _showDisplayDialog(context, 'Passkey',
-          req.passkey.toString().padLeft(6, '0'), req.devicePath);
+      _showDisplayDialog(
+        context,
+        'Passkey',
+        req.passkey.toString().padLeft(6, '0'),
+        req.devicePath,
+      );
     case AgentRequestType.cancel:
       // Dismiss any open pairing dialog.
       Navigator.of(context, rootNavigator: true).popUntil((route) {
@@ -40,7 +47,10 @@ String _deviceName(String devicePath) {
 // ── Confirm passkey ─────────────────────────────────────────────────────────
 
 void _showConfirmDialog(
-    BuildContext context, BlueZClient client, BlueZAgentRequest req) {
+  BuildContext context,
+  BlueZClient client,
+  BlueZAgentRequest req,
+) {
   final passkey = req.passkey.toString().padLeft(6, '0');
   final device = _deviceName(req.devicePath);
 
@@ -57,9 +67,9 @@ void _showConfirmDialog(
           Text(
             passkey,
             style: Theme.of(ctx).textTheme.headlineLarge?.copyWith(
-                  fontFamily: 'monospace',
-                  letterSpacing: 8,
-                ),
+              fontFamily: 'monospace',
+              letterSpacing: 8,
+            ),
           ),
           const SizedBox(height: 8),
           const Text('Does this passkey match the device?'),
@@ -88,7 +98,10 @@ void _showConfirmDialog(
 // ── Enter PIN code ──────────────────────────────────────────────────────────
 
 void _showPinCodeDialog(
-    BuildContext context, BlueZClient client, BlueZAgentRequest req) {
+  BuildContext context,
+  BlueZClient client,
+  BlueZAgentRequest req,
+) {
   final controller = TextEditingController();
   final device = _deviceName(req.devicePath);
 
@@ -135,7 +148,10 @@ void _showPinCodeDialog(
 // ── Enter passkey ───────────────────────────────────────────────────────────
 
 void _showPasskeyDialog(
-    BuildContext context, BlueZClient client, BlueZAgentRequest req) {
+  BuildContext context,
+  BlueZClient client,
+  BlueZAgentRequest req,
+) {
   final controller = TextEditingController();
   final device = _deviceName(req.devicePath);
 
@@ -184,7 +200,10 @@ void _showPasskeyDialog(
 // ── Authorization request ───────────────────────────────────────────────────
 
 void _showAuthorizationDialog(
-    BuildContext context, BlueZClient client, BlueZAgentRequest req) {
+  BuildContext context,
+  BlueZClient client,
+  BlueZAgentRequest req,
+) {
   final device = _deviceName(req.devicePath);
 
   showDialog<void>(
@@ -216,7 +235,10 @@ void _showAuthorizationDialog(
 // ── Service authorization ───────────────────────────────────────────────────
 
 void _showServiceAuthDialog(
-    BuildContext context, BlueZClient client, BlueZAgentRequest req) {
+  BuildContext context,
+  BlueZClient client,
+  BlueZAgentRequest req,
+) {
   final device = _deviceName(req.devicePath);
 
   showDialog<void>(
@@ -257,7 +279,11 @@ void _showServiceAuthDialog(
 // ── Display-only (informational) ────────────────────────────────────────────
 
 void _showDisplayDialog(
-    BuildContext context, String label, String value, String devicePath) {
+  BuildContext context,
+  String label,
+  String value,
+  String devicePath,
+) {
   final device = _deviceName(devicePath);
 
   showDialog<void>(
@@ -272,9 +298,9 @@ void _showDisplayDialog(
           Text(
             value,
             style: Theme.of(ctx).textTheme.headlineLarge?.copyWith(
-                  fontFamily: 'monospace',
-                  letterSpacing: 8,
-                ),
+              fontFamily: 'monospace',
+              letterSpacing: 8,
+            ),
           ),
           const SizedBox(height: 8),
           const Text('Enter this on the remote device.'),

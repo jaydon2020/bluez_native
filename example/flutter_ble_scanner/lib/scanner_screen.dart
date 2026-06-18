@@ -175,8 +175,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.bluetooth_disabled,
-                      size: 48, color: Colors.grey),
+                  const Icon(
+                    Icons.bluetooth_disabled,
+                    size: 48,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(height: 16),
                   const Text('Bluetooth adapter is powered off.'),
                   const SizedBox(height: 16),
@@ -188,28 +191,26 @@ class _ScannerScreenState extends State<ScannerScreen> {
               ),
             )
           : sorted.isEmpty
-              ? const Center(
-                  child: Text('No devices found. Tap scan to start.'))
-              : ListView.builder(
-                  itemCount: sorted.length,
-                  itemBuilder: (context, index) {
-                    final device = sorted[index];
-                    final name =
-                        device.name.isNotEmpty ? device.name : '(unknown)';
-                    return ListTile(
-                      title: Text(name),
-                      subtitle: Text(device.address),
-                      trailing: Text('${device.rssi} dBm'),
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                          builder: (_) =>
-                              DeviceScreen(client: _client, device: device),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+          ? const Center(child: Text('No devices found. Tap scan to start.'))
+          : ListView.builder(
+              itemCount: sorted.length,
+              itemBuilder: (context, index) {
+                final device = sorted[index];
+                final name = device.name.isNotEmpty ? device.name : '(unknown)';
+                return ListTile(
+                  title: Text(name),
+                  subtitle: Text(device.address),
+                  trailing: Text('${device.rssi} dBm'),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) =>
+                          DeviceScreen(client: _client, device: device),
+                    ),
+                  ),
+                );
+              },
+            ),
     );
   }
 }

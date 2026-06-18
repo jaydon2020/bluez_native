@@ -9,11 +9,7 @@ class DeviceScreen extends StatefulWidget {
   final BlueZClient client;
   final BlueZDevice device;
 
-  const DeviceScreen({
-    super.key,
-    required this.client,
-    required this.device,
-  });
+  const DeviceScreen({super.key, required this.client, required this.device});
 
   @override
   State<DeviceScreen> createState() => _DeviceScreenState();
@@ -54,9 +50,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
       await widget.device.waitForServicesResolved();
     } on Exception catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Connection failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Connection failed: $e')));
       }
     }
     if (mounted) setState(() => _busy = false);
@@ -72,15 +68,15 @@ class _DeviceScreenState extends State<DeviceScreen> {
       await widget.device.pair();
       // pair() completes while still connected — just update UI.
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Pairing successful')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Pairing successful')));
       }
     } on Exception catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Pairing failed: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Pairing failed: $e')));
       }
     }
     if (mounted) setState(() => _busy = false);
@@ -131,9 +127,12 @@ class _DeviceScreenState extends State<DeviceScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(device.paired ? 'Paired' : 'Not paired',
-                style: TextStyle(
-                    color: device.paired ? Colors.green : Colors.grey)),
+            Text(
+              device.paired ? 'Paired' : 'Not paired',
+              style: TextStyle(
+                color: device.paired ? Colors.green : Colors.grey,
+              ),
+            ),
             const SizedBox(height: 8),
             const Text('Tap Connect to discover services.'),
           ],
@@ -158,8 +157,9 @@ class _DeviceScreenState extends State<DeviceScreen> {
           children: service.characteristics.map((char) {
             return ListTile(
               title: Text(char.uuid.toString()),
-              subtitle:
-                  Text('Flags: ${char.flags.map((f) => f.name).join(', ')}'),
+              subtitle: Text(
+                'Flags: ${char.flags.map((f) => f.name).join(', ')}',
+              ),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => Navigator.push(
                 context,
