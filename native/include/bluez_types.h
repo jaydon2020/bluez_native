@@ -13,6 +13,7 @@
 //   0x10 = BlueZCharValue      (ReadValue / WriteValue result)
 //   0x11 = BlueZDescValue      (ReadValue on descriptor)
 //   0x20 = BlueZError          (method call failed)
+//   0x30 = BlueZAgentRequest   (pairing agent callback from BlueZ)
 //   0xFF = sentinel (stream done)
 
 #pragma once
@@ -235,4 +236,41 @@ struct glz::meta<BlueZError> {
       std::make_tuple(glz::field("objectPath", &BlueZError::objectPath),
                       glz::field("name", &BlueZError::name),
                       glz::field("message", &BlueZError::message));
+};
+
+// ── Agent request types ────────────────────────────────────────────────────
+
+enum AgentRequestType : uint8_t {
+  kRequestPinCode = 0,
+  kDisplayPinCode = 1,
+  kRequestPasskey = 2,
+  kDisplayPasskey = 3,
+  kRequestConfirmation = 4,
+  kRequestAuthorization = 5,
+  kAuthorizeService = 6,
+  kAgentCancel = 7,
+  kAgentRelease = 8,
+};
+
+// ── Agent request (0x30) ───────────────────────────────────────────────────
+
+struct BlueZAgentRequest {
+  uint64_t requestId{};
+  uint8_t requestType{};
+  std::string devicePath;
+  uint32_t passkey{};
+  uint16_t entered{};
+  std::string pinCode;
+  std::string uuid;
+};
+template <>
+struct glz::meta<BlueZAgentRequest> {
+  static constexpr auto fields = std::make_tuple(
+      glz::field("requestId", &BlueZAgentRequest::requestId),
+      glz::field("requestType", &BlueZAgentRequest::requestType),
+      glz::field("devicePath", &BlueZAgentRequest::devicePath),
+      glz::field("passkey", &BlueZAgentRequest::passkey),
+      glz::field("entered", &BlueZAgentRequest::entered),
+      glz::field("pinCode", &BlueZAgentRequest::pinCode),
+      glz::field("uuid", &BlueZAgentRequest::uuid));
 };

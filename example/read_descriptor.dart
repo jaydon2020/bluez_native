@@ -1,13 +1,15 @@
 // example/read_descriptor.dart — read GATT descriptors for a characteristic.
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 import 'example_utils.dart';
 
 Future<void> main(List<String> args) async {
   if (args.length < 2) {
-    print('Usage: dart run example/read_descriptor.dart '
-        '<device_address> <characteristic_uuid> [--timeout <seconds>]');
+    print(
+      'Usage: dart run example/read_descriptor.dart '
+      '<device_address> <characteristic_uuid> [--timeout <seconds>]',
+    );
     print('');
     print('Reads all descriptors on the specified characteristic.');
     return;
@@ -53,8 +55,9 @@ Future<void> main(List<String> args) async {
 
   await target.waitForServicesResolved();
 
-  final char =
-      target.gattCharacteristics.where((c) => c.uuid == charUuid).firstOrNull;
+  final char = target.gattCharacteristics
+      .where((c) => c.uuid == charUuid)
+      .firstOrNull;
 
   if (char == null) {
     print('Characteristic $charUuid not found.');
@@ -76,8 +79,9 @@ Future<void> main(List<String> args) async {
     print('  Descriptor: ${desc.uuid}');
     try {
       final value = await desc.readValue();
-      final hex =
-          value.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ');
+      final hex = value
+          .map((b) => b.toRadixString(16).padLeft(2, '0'))
+          .join(' ');
       print('  Value: $value');
       print('  Hex:   $hex');
     } on BlueZOperationException catch (e) {

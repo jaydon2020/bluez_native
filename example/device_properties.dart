@@ -2,14 +2,16 @@
 
 import 'dart:async';
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 import 'example_utils.dart';
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty) {
-    print('Usage: dart run example/device_properties.dart <device_address> '
-        '[--timeout <seconds>]');
+    print(
+      'Usage: dart run example/device_properties.dart <device_address> '
+      '[--timeout <seconds>]',
+    );
     print('');
     print('Monitors property changes (RSSI, Connected, etc.) for 30 seconds.');
     return;

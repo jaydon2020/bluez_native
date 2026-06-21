@@ -37,7 +37,10 @@ class BlueZGattDescriptor {
   Future<List<int>> readValue() async {
     final port = ReceivePort();
     BlueZBindings.descReadValue(
-        _clientHandle, objectPath, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      port.sendPort.nativePort,
+    );
     final msg = await port.first as Uint8List;
     port.close();
     if (msg[0] == 0x20) {
@@ -53,7 +56,11 @@ class BlueZGattDescriptor {
     final bytes = Uint8List.fromList(data);
     final port = ReceivePort();
     BlueZBindings.descWriteValue(
-        _clientHandle, objectPath, bytes, port.sendPort.nativePort);
+      _clientHandle,
+      objectPath,
+      bytes,
+      port.sendPort.nativePort,
+    );
     final msg = await port.first as Uint8List;
     port.close();
     if (msg[0] == 0x20) {

@@ -13,10 +13,7 @@ class BLEScannerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'BLE Scanner',
-      theme: ThemeData(
-        colorSchemeSeed: Colors.blue,
-        useMaterial3: true,
-      ),
+      theme: ThemeData(colorSchemeSeed: Colors.blue, useMaterial3: true),
       home: const ScannerScreen(),
     );
   }

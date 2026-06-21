@@ -1,13 +1,15 @@
 // example/read_characteristic.dart — read a GATT characteristic value.
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 import 'example_utils.dart';
 
 Future<void> main(List<String> args) async {
   if (args.length < 2) {
-    print('Usage: dart run example/read_characteristic.dart '
-        '<device_address> <characteristic_uuid> [--timeout <seconds>]');
+    print(
+      'Usage: dart run example/read_characteristic.dart '
+      '<device_address> <characteristic_uuid> [--timeout <seconds>]',
+    );
     return;
   }
 
@@ -52,8 +54,9 @@ Future<void> main(List<String> args) async {
   await target.waitForServicesResolved();
 
   // Find the characteristic across all services.
-  final char =
-      target.gattCharacteristics.where((c) => c.uuid == charUuid).firstOrNull;
+  final char = target.gattCharacteristics
+      .where((c) => c.uuid == charUuid)
+      .firstOrNull;
 
   if (char == null) {
     print('Characteristic $charUuid not found.');
@@ -65,7 +68,8 @@ Future<void> main(List<String> args) async {
   final value = await char.readValue();
   print('Value: $value');
   print(
-      'Hex: ${value.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
+    'Hex: ${value.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}',
+  );
 
   await target.disconnect();
   await client.close();

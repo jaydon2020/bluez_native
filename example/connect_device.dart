@@ -1,13 +1,15 @@
 // example/connect_device.dart — connect to a device by address.
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 import 'example_utils.dart';
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty) {
-    print('Usage: dart run example/connect_device.dart <device_address> '
-        '[--timeout <seconds>]');
+    print(
+      'Usage: dart run example/connect_device.dart <device_address> '
+      '[--timeout <seconds>]',
+    );
     return;
   }
 

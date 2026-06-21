@@ -1,4 +1,4 @@
-# bluez_native_comms
+# bluez_native
 
 High-performance BlueZ Bluetooth client for Linux using native_comms and
 sdbus-cpp. Zero-copy characteristic notifications via `Dart_PostCObject_DL`.
@@ -43,14 +43,14 @@ sudo dnf install cmake ninja-build clang systemd-devel pkgconf-pkg-config
 
 ```yaml
 dependencies:
-  bluez_native_comms: ^0.1.0
+  bluez_native: ^0.1.0
 ```
 
 ### 3. Clone with submodules and build the native library
 
 ```bash
-git clone --recurse-submodules https://github.com/jwinarske/bluez_native_comms.git
-cd bluez_native_comms
+git clone --recurse-submodules https://github.com/jwinarske/bluez_native.git
+cd bluez_native
 cmake -B build native/ -GNinja -DCMAKE_BUILD_TYPE=Release
 cmake --build build --parallel
 ```
@@ -75,7 +75,7 @@ BLUEZ_NC_LIB=$PWD/../../build/libbluez_nc.so flutter run
 ## Quick Start
 
 ```dart
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 Future<void> main() async {
   final client = BlueZClient();
@@ -182,8 +182,8 @@ import 'package:bluez/bluez.dart';
 final client = BlueZClient();
 await client.connect();
 
-// After (bluez_native_comms) — same API
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+// After (bluez_native) — same API
+import 'package:bluez_native/bluez_native.dart';
 final client = BlueZClient();
 await client.connect();
 ```

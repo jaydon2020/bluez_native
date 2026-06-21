@@ -54,7 +54,11 @@ class BlueZAdapter {
       await _rfkillUnblock();
     }
     BlueZBindings.adapterSetPropertyBool(
-        _clientHandle, objectPath, 'Powered', value);
+      _clientHandle,
+      objectPath,
+      'Powered',
+      value,
+    );
   }
 
   /// Unblock Bluetooth via rfkill if soft-blocked.
@@ -106,8 +110,9 @@ class BlueZAdapter {
       address: _props.address,
       name: _props.name,
       alias: m(BlueZAdapterProps.kAliasBit) ? partial.alias : _props.alias,
-      powered:
-          m(BlueZAdapterProps.kPoweredBit) ? partial.powered : _props.powered,
+      powered: m(BlueZAdapterProps.kPoweredBit)
+          ? partial.powered
+          : _props.powered,
       discoverable: m(BlueZAdapterProps.kDiscoverableBit)
           ? partial.discoverable
           : _props.discoverable,

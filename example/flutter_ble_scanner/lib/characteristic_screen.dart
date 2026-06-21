@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 import 'package:flutter/material.dart';
 
 class CharacteristicScreen extends StatefulWidget {
@@ -25,9 +25,9 @@ class _CharacteristicScreenState extends State<CharacteristicScreen> {
       setState(() => _lastValue = value);
     } on BlueZOperationException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Read failed: ${e.message}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Read failed: ${e.message}')));
       }
     }
   }
@@ -47,9 +47,9 @@ class _CharacteristicScreenState extends State<CharacteristicScreen> {
       setState(() => _notifying = !_notifying);
     } on BlueZOperationException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Notify failed: ${e.message}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Notify failed: ${e.message}')));
       }
     }
   }
@@ -72,8 +72,10 @@ class _CharacteristicScreenState extends State<CharacteristicScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Service: ${_char.servicePath}',
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              'Service: ${_char.servicePath}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
             const SizedBox(height: 8),
             Text('Flags: ${_char.flags.map((f) => f.name).join(', ')}'),
             Text('MTU: ${_char.mtu}'),
@@ -85,10 +87,7 @@ class _CharacteristicScreenState extends State<CharacteristicScreen> {
             ],
             Row(
               children: [
-                ElevatedButton(
-                  onPressed: _read,
-                  child: const Text('Read'),
-                ),
+                ElevatedButton(onPressed: _read, child: const Text('Read')),
                 const SizedBox(width: 16),
                 ElevatedButton(
                   onPressed: _toggleNotify,

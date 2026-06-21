@@ -1,7 +1,7 @@
 // example/notify_characteristic.dart
-// Demonstrates zero-copy characteristic notification with bluez_native_comms.
+// Demonstrates zero-copy characteristic notification with bluez_native.
 
-import 'package:bluez_native_comms/bluez_native_comms.dart';
+import 'package:bluez_native/bluez_native.dart';
 
 import 'example_utils.dart';
 
@@ -10,8 +10,10 @@ const _heartRateMeasurementUuid = '00002a37-0000-1000-8000-00805f9b34fb';
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty) {
-    print('Usage: dart run example/notify_characteristic.dart <device_address> '
-        '[--timeout <seconds>]');
+    print(
+      'Usage: dart run example/notify_characteristic.dart <device_address> '
+      '[--timeout <seconds>]',
+    );
     return;
   }
 

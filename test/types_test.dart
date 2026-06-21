@@ -1,6 +1,6 @@
-import 'package:bluez_native_comms/src/bluez_uuid.dart';
-import 'package:bluez_native_comms/src/enums.dart';
-import 'package:bluez_native_comms/src/exceptions.dart';
+import 'package:bluez_native/src/bluez_uuid.dart';
+import 'package:bluez_native/src/enums.dart';
+import 'package:bluez_native/src/exceptions.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -26,19 +26,29 @@ void main() {
 
   group('BlueZGattCharacteristicFlag', () {
     test('fromString parses known flags', () {
-      expect(BlueZGattCharacteristicFlag.fromString('read'),
-          BlueZGattCharacteristicFlag.read);
-      expect(BlueZGattCharacteristicFlag.fromString('write'),
-          BlueZGattCharacteristicFlag.write);
-      expect(BlueZGattCharacteristicFlag.fromString('notify'),
-          BlueZGattCharacteristicFlag.notify);
-      expect(BlueZGattCharacteristicFlag.fromString('write-without-response'),
-          BlueZGattCharacteristicFlag.writeWithoutResponse);
+      expect(
+        BlueZGattCharacteristicFlag.fromString('read'),
+        BlueZGattCharacteristicFlag.read,
+      );
+      expect(
+        BlueZGattCharacteristicFlag.fromString('write'),
+        BlueZGattCharacteristicFlag.write,
+      );
+      expect(
+        BlueZGattCharacteristicFlag.fromString('notify'),
+        BlueZGattCharacteristicFlag.notify,
+      );
+      expect(
+        BlueZGattCharacteristicFlag.fromString('write-without-response'),
+        BlueZGattCharacteristicFlag.writeWithoutResponse,
+      );
     });
 
     test('fromString throws on unknown flag', () {
-      expect(() => BlueZGattCharacteristicFlag.fromString('unknown'),
-          throwsA(isA<ArgumentError>()));
+      expect(
+        () => BlueZGattCharacteristicFlag.fromString('unknown'),
+        throwsA(isA<ArgumentError>()),
+      );
     });
   });
 

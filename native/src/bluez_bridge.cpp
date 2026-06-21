@@ -14,10 +14,12 @@
 #include "device_bridge.h"
 #include "gatt_bridge.h"
 #include "object_manager.h"
+#include "pairing_agent.h"
 
 struct BridgeContext {
   std::unique_ptr<sdbus::IConnection> conn;
   std::unique_ptr<ObjectManager> obj_mgr;
+  std::unique_ptr<PairingAgent> agent;
   Dart_Port_DL events_port{};
   std::thread event_loop;
 };
@@ -65,6 +67,8 @@ void* bluez_client_create(int64_t events_port) {
 }
 
 void bluez_client_destroy(void* handle) {
+  if (handle == nullptr)
+    return;
   auto* ctx = static_cast<BridgeContext*>(handle);
   ctx->conn->leaveEventLoop();
   if (ctx->event_loop.joinable()) {
@@ -148,6 +152,47 @@ void bluez_adapter_set_property(void* handle,
   }
 }
 
+// ── Pairing agent ──────────────────────────────────────────────────────────
+
+void bluez_agent_register(void* handle) {
+  if (handle == nullptr)
+    return;
+  try {
+    auto* ctx = static_cast<BridgeContext*>(handle);
+    if (!ctx->agent) {
+      ctx->agent = std::make_unique<PairingAgent>(*ctx->conn, ctx->events_port);
+    }
+    ctx->agent->register_agent();
+  } catch (const sdbus::Error& e) {
+    fprintf(stderr, "bluez_agent_register: %s\n", e.what());
+  }
+}
+
+void bluez_agent_unregister(void* handle) {
+  if (handle == nullptr)
+    return;
+  try {
+    auto* ctx = static_cast<BridgeContext*>(handle);
+    if (ctx->agent) {
+      ctx->agent->unregister_agent();
+      ctx->agent.reset();
+    }
+  } catch (const sdbus::Error& e) {
+    fprintf(stderr, "bluez_agent_unregister: %s\n", e.what());
+  }
+}
+
+void bluez_agent_respond(void* handle,
+                         uint64_t request_id,
+                         bool accepted,
+                         const char* response) {
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  if (ctx->agent) {
+    ctx->agent->respond(request_id, accepted,
+                        response != nullptr ? response : "");
+  }
+}
+
 // ── Device operations ───────────────────────────────────────────────────────
 
 void bluez_device_connect(void* handle,
@@ -204,13 +249,8 @@ void bluez_device_set_property(void* handle,
 void bluez_char_read_value(void* handle,
                            const char* char_path,
                            int64_t result_port) {
-  try {
-    auto* ctx = static_cast<BridgeContext*>(handle);
-    GattCharBridge gatt(*ctx->conn, char_path, *ctx->obj_mgr);
-    gatt.read_value(result_port);
-  } catch (const sdbus::Error& e) {
-    fprintf(stderr, "bluez_char_read_value: %s\n", e.what());
-  }
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  GattCharBridge::read_value_async(*ctx->conn, char_path, result_port);
 }
 
 void bluez_char_write_value(void* handle,
@@ -219,37 +259,25 @@ void bluez_char_write_value(void* handle,
                             int32_t len,
                             bool with_response,
                             int64_t result_port) {
-  try {
-    auto* ctx = static_cast<BridgeContext*>(handle);
-    GattCharBridge gatt(*ctx->conn, char_path, *ctx->obj_mgr);
-    gatt.write_value(value_buf, len, with_response, result_port);
-  } catch (const sdbus::Error& e) {
-    fprintf(stderr, "bluez_char_write_value: %s\n", e.what());
-  }
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  GattCharBridge::write_value_async(*ctx->conn, char_path, value_buf, len,
+                                    with_response, result_port);
 }
 
 void bluez_char_start_notify(void* handle,
                              const char* char_path,
                              int64_t result_port) {
-  try {
-    auto* ctx = static_cast<BridgeContext*>(handle);
-    GattCharBridge gatt(*ctx->conn, char_path, *ctx->obj_mgr);
-    gatt.start_notify(result_port);
-  } catch (const sdbus::Error& e) {
-    fprintf(stderr, "bluez_char_start_notify: %s\n", e.what());
-  }
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  GattCharBridge::start_notify_async(*ctx->conn, char_path, *ctx->obj_mgr,
+                                     result_port);
 }
 
 void bluez_char_stop_notify(void* handle,
                             const char* char_path,
                             int64_t result_port) {
-  try {
-    auto* ctx = static_cast<BridgeContext*>(handle);
-    GattCharBridge gatt(*ctx->conn, char_path, *ctx->obj_mgr);
-    gatt.stop_notify(result_port);
-  } catch (const sdbus::Error& e) {
-    fprintf(stderr, "bluez_char_stop_notify: %s\n", e.what());
-  }
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  GattCharBridge::stop_notify_async(*ctx->conn, char_path, *ctx->obj_mgr,
+                                    result_port);
 }
 
 // ── GATT descriptor operations ──────────────────────────────────────────────
@@ -257,13 +285,8 @@ void bluez_char_stop_notify(void* handle,
 void bluez_desc_read_value(void* handle,
                            const char* desc_path,
                            int64_t result_port) {
-  try {
-    auto* ctx = static_cast<BridgeContext*>(handle);
-    GattDescBridge desc(*ctx->conn, desc_path);
-    desc.read_value(result_port);
-  } catch (const sdbus::Error& e) {
-    fprintf(stderr, "bluez_desc_read_value: %s\n", e.what());
-  }
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  GattDescBridge::read_value_async(*ctx->conn, desc_path, result_port);
 }
 
 void bluez_desc_write_value(void* handle,
@@ -271,13 +294,9 @@ void bluez_desc_write_value(void* handle,
                             const uint8_t* value_buf,
                             int32_t len,
                             int64_t result_port) {
-  try {
-    auto* ctx = static_cast<BridgeContext*>(handle);
-    GattDescBridge desc(*ctx->conn, desc_path);
-    desc.write_value(value_buf, len, result_port);
-  } catch (const sdbus::Error& e) {
-    fprintf(stderr, "bluez_desc_write_value: %s\n", e.what());
-  }
+  auto* ctx = static_cast<BridgeContext*>(handle);
+  GattDescBridge::write_value_async(*ctx->conn, desc_path, value_buf, len,
+                                    result_port);
 }
 
 }  // extern "C"
