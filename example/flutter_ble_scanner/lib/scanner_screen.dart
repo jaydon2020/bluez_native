@@ -66,10 +66,10 @@ class _ScannerScreenState extends State<ScannerScreen> {
         });
       });
 
-      // Register the pairing agent and listen for requests.
+      // Listen before registering so any immediate agent request is handled.
+      _agentSub = _client.agentRequest.listen(_onAgentRequest);
       _client.registerAgent();
       _agentRegistered = true;
-      _agentSub = _client.agentRequest.listen(_onAgentRequest);
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());

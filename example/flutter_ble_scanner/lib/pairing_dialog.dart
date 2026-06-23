@@ -37,6 +37,14 @@ String _deviceName(String devicePath) {
   return parts.last.replaceAll('dev_', '').replaceAll('_', ':');
 }
 
+String _deviceLabel(BlueZClient client, String devicePath) {
+  final address = _deviceName(devicePath);
+  final device =
+      client.devices.where((d) => d.objectPath == devicePath).firstOrNull;
+  if (device == null || device.name.isEmpty) return address;
+  return '${device.name} ($address)';
+}
+
 // ── Confirm passkey ─────────────────────────────────────────────────────────
 
 void _showConfirmDialog(
@@ -217,7 +225,7 @@ void _showAuthorizationDialog(
 
 void _showServiceAuthDialog(
     BuildContext context, BlueZClient client, BlueZAgentRequest req) {
-  final device = _deviceName(req.devicePath);
+  final device = _deviceLabel(client, req.devicePath);
 
   showDialog<void>(
     context: context,
