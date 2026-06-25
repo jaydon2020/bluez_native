@@ -119,6 +119,8 @@ and snapshot the BlueZ object tree.
 | Method | Description |
 |---|---|
 | `setPowered()` | Power the adapter on or off |
+| `setDiscoverable()` | Make the adapter discoverable or hidden |
+| `setPairable()` | Allow or reject incoming pairing requests |
 | `startDiscovery()` | Begin scanning |
 | `stopDiscovery()` | Stop scanning |
 | `setDiscoveryFilter()` | Set transport, RSSI, UUIDs filter |

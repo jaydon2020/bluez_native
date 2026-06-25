@@ -1,5 +1,6 @@
 ## 0.2.0
 
+- Add `BlueZAdapter.setDiscoverable()` and `BlueZAdapter.setPairable()`.
 - **Breaking**: Wire format changed — changedMask field added to adapter and
   device props. Requires matching native library rebuild.
 - Fix device Connect/Disconnect/Pair blocking the Dart isolate by switching

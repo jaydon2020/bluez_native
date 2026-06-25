@@ -1,9 +1,21 @@
+import 'package:bluez_native/src/bluez_adapter.dart';
 import 'package:bluez_native/src/bluez_uuid.dart';
 import 'package:bluez_native/src/enums.dart';
 import 'package:bluez_native/src/exceptions.dart';
+import 'package:bluez_native/src/ffi/types.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('BlueZAdapter', () {
+    test('exposes discoverable and pairable setters', () {
+      const props = BlueZAdapterProps(objectPath: '/org/bluez/hci0');
+      final adapter = BlueZAdapter.internal(Object(), props);
+
+      expect(adapter.setDiscoverable, isA<Future<void> Function(bool)>());
+      expect(adapter.setPairable, isA<Future<void> Function(bool)>());
+    });
+  });
+
   group('BlueZUUID', () {
     test('equality is case-insensitive', () {
       const a = BlueZUUID('0000180D-0000-1000-8000-00805F9B34FB');
