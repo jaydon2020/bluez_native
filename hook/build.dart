@@ -54,8 +54,24 @@ void main(List<String> args) async {
     }
 
     final hasNinja = await _which('ninja');
+    final cCompiler = input.config.code.cCompiler;
+    final toolchainFile = Platform.environment['CMAKE_TOOLCHAIN_FILE'];
+    final hasToolchainFile = toolchainFile != null && toolchainFile.isNotEmpty;
+    final toolchainFilePath = hasToolchainFile
+        ? File(toolchainFile).absolute.path
+        : null;
+    final cmakeCache = File('${buildDir}CMakeCache.txt');
 
-    if (!File('${buildDir}CMakeCache.txt').existsSync()) {
+    if (cmakeCache.existsSync() &&
+        (hasToolchainFile || _cacheHasToolchainFile(cmakeCache))) {
+      cmakeCache.deleteSync();
+      final cmakeFiles = Directory('${buildDir}CMakeFiles');
+      if (cmakeFiles.existsSync()) {
+        cmakeFiles.deleteSync(recursive: true);
+      }
+    }
+
+    if (!cmakeCache.existsSync() || hasToolchainFile) {
       await _run('cmake', [
         '-S',
         nativeRoot,
@@ -64,6 +80,13 @@ void main(List<String> args) async {
         '-DCMAKE_BUILD_TYPE=Release',
         '-DBUILD_TESTING=OFF',
         '-DBLUEZ_HOOK_BUILD=ON',
+        if (hasToolchainFile)
+          '-DCMAKE_TOOLCHAIN_FILE=$toolchainFilePath'
+        else if (cCompiler != null) ...[
+          '-DCMAKE_C_COMPILER=${cCompiler.compiler.toFilePath()}',
+          '-DCMAKE_LINKER=${cCompiler.linker.toFilePath()}',
+          '-DCMAKE_AR=${cCompiler.archiver.toFilePath()}',
+        ],
         if (hasNinja) ...['-G', 'Ninja'],
       ]);
     }
@@ -101,6 +124,9 @@ void main(List<String> args) async {
       }
     }
     output.dependencies.add(Uri.file('$nativeRoot/CMakeLists.txt'));
+    if (hasToolchainFile) {
+      output.dependencies.add(File(toolchainFile).absolute.uri);
+    }
 
     stderr.writeln('libbluez_nc built: ${libFile.path}');
   });
@@ -117,4 +143,11 @@ Future<void> _run(String exe, List<String> args) async {
 Future<bool> _which(String exe) async {
   final r = await Process.run('which', [exe]);
   return r.exitCode == 0;
+}
+
+bool _cacheHasToolchainFile(File cache) {
+  for (final line in cache.readAsLinesSync()) {
+    if (line.startsWith('CMAKE_TOOLCHAIN_FILE:')) return true;
+  }
+  return false;
 }
