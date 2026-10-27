@@ -21,6 +21,29 @@ void DeviceBridge::connect_async(sdbus::IConnection& conn,
   call_device_method_async(conn, device_path, "Connect", result_port);
 }
 
+void DeviceBridge::connect_profile_async(sdbus::IConnection& conn,
+                                         const std::string& device_path,
+                                         const std::string& profile_uuid,
+                                         Dart_Port_DL result_port) {
+  auto proxy = std::shared_ptr<sdbus::IProxy>(
+      sdbus::createProxy(conn, sdbus::ServiceName{kBluezService},
+                         sdbus::ObjectPath{device_path})
+          .release());
+
+  proxy->callMethodAsync("ConnectProfile")
+      .onInterface(kDeviceIface)
+      .withArguments(profile_uuid)
+      .uponReplyInvoke(
+          [proxy, device_path, result_port](std::optional<sdbus::Error> error) {
+            if (error) {
+              post_error(result_port, device_path, error->getName(),
+                         error->getMessage());
+            } else {
+              post_success(result_port);
+            }
+          });
+}
+
 void DeviceBridge::disconnect_async(sdbus::IConnection& conn,
                                     const std::string& device_path,
                                     Dart_Port_DL result_port) {

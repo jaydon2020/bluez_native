@@ -27,6 +27,12 @@ class DeviceBridge {
                             const std::string& device_path,
                             Dart_Port_DL result_port);
 
+  // Connect a specific profile by its remote service UUID.
+  static void connect_profile_async(sdbus::IConnection& conn,
+                                    const std::string& device_path,
+                                    const std::string& profile_uuid,
+                                    Dart_Port_DL result_port);
+
   // Disconnect from the remote device.
   static void disconnect_async(sdbus::IConnection& conn,
                                const std::string& device_path,

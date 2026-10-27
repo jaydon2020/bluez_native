@@ -316,6 +316,17 @@ void bluez_device_connect(void* handle,
   DeviceBridge::connect_async(*ctx->conn, device_path, result_port);
 }
 
+void bluez_device_connect_profile(void* handle,
+                                  const char* device_path,
+                                  const char* profile_uuid,
+                                  int64_t result_port) {
+  const auto ctx = client_for(handle);
+  if (!ctx)
+    return;
+  DeviceBridge::connect_profile_async(*ctx->conn, device_path, profile_uuid,
+                                      result_port);
+}
+
 void bluez_device_disconnect(void* handle,
                              const char* device_path,
                              int64_t result_port) {

@@ -115,6 +115,18 @@ class BlueZDevice {
     }
   }
 
+  /// Connect a specific profile by its remote service [uuid].
+  Future<void> connectProfile(BlueZUUID uuid) async {
+    final port = ReceivePort();
+    BlueZBindings.deviceConnectProfile(
+      _clientHandle,
+      objectPath,
+      uuid.value,
+      port.sendPort.nativePort,
+    );
+    await _awaitResult(port);
+  }
+
   /// Disconnect from this device.
   Future<void> disconnect() async {
     final port = ReceivePort();
